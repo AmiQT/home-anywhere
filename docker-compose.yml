@@ -1,15 +1,87 @@
+# Home Anywhere — full-stack one-command setup.
+#
+#   docker compose up
+#
+# Boots three services together:
+#   • db       — MySQL 8 (data persists in a named volume)
+#   • backend  — Laravel API on :8000 (auto key:generate + migrate + seed)
+#   • frontend — Next.js site on :3000 (proxies /api/* to the backend)
+#
+# Then open http://localhost:3000 (guest site) and
+#            http://localhost:3000/admin (dashboard).
+#
+# Admin login defaults to admin / change-me — override with ADMIN_USERNAME
+# and ADMIN_PASSWORD (see .env.docker.example).
+
 services:
-  mysql:
+  db:
     image: mysql:8.0
-    container_name: home-anywhere-mysql
+    container_name: home-anywhere-db
     restart: unless-stopped
     environment:
       MYSQL_DATABASE: home_anywhere
       MYSQL_ALLOW_EMPTY_PASSWORD: 'yes'
-    ports:
-      - '3306:3306'
     volumes:
       - mysql_data:/var/lib/mysql
+    healthcheck:
+      test: ['CMD', 'mysqladmin', 'ping', '-h', 'localhost']
+      interval: 5s
+      timeout: 5s
+      retries: 20
+    networks:
+      - home-anywhere
+
+  backend:
+    build: ./backend
+    container_name: home-anywhere-backend
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      APP_NAME: 'Home Anywhere'
+      APP_ENV: local
+      APP_DEBUG: 'true'
+      APP_URL: http://localhost:8000
+      # Talk to the db service over the compose network.
+      DB_CONNECTION: mysql
+      DB_HOST: db
+      DB_PORT: 3306
+      DB_DATABASE: home_anywhere
+      DB_USERNAME: root
+      DB_PASSWORD: ''
+      # Where the backend builds guest-facing links (Stripe success, etc).
+      NEXT_PUBLIC_APP_URL: http://localhost:3000
+      # Admin API credentials — MUST match the frontend below.
+      ADMIN_USERNAME: ${ADMIN_USERNAME:-admin}
+      ADMIN_PASSWORD: ${ADMIN_PASSWORD:-change-me}
+      # Optional integrations — blank = demo mode (no Stripe / Calendar).
+      STRIPE_SECRET_KEY: ${STRIPE_SECRET_KEY:-}
+      STRIPE_WEBHOOK_SECRET: ${STRIPE_WEBHOOK_SECRET:-}
+    ports:
+      - '8000:8000'
+    volumes:
+      # Persist uploaded listing photos across restarts.
+      - backend_storage:/var/www/storage/app/public
+    networks:
+      - home-anywhere
+
+  frontend:
+    build: ./frontend
+    container_name: home-anywhere-frontend
+    restart: unless-stopped
+    depends_on:
+      - backend
+    environment:
+      # Server-side proxy target (next.config.mjs rewrites /api/* here).
+      BACKEND_URL: http://backend:8000
+      NEXT_PUBLIC_APP_URL: http://localhost:3000
+      NEXT_PUBLIC_GA_ID: ${NEXT_PUBLIC_GA_ID:-}
+      # Basic-auth for /admin — MUST match the backend above.
+      ADMIN_USERNAME: ${ADMIN_USERNAME:-admin}
+      ADMIN_PASSWORD: ${ADMIN_PASSWORD:-change-me}
+    ports:
+      - '3000:3000'
     networks:
       - home-anywhere
 
@@ -19,3 +91,4 @@ networks:
 
 volumes:
   mysql_data:
+  backend_storage:
