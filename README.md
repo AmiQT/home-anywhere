@@ -57,12 +57,32 @@ dashboard, and pluggable integrations for payments and calendars.
 
 ## Quick start
 
-> Requires Node 18+, PHP 8.3+, Composer, and (optionally) Docker.
-
 ```bash
 git clone https://github.com/AmiQT/home-anywhere.git
 cd home-anywhere
 ```
+
+### Fastest: one command with Docker 🐳
+
+The only thing you need installed is
+[Docker Desktop](https://www.docker.com/products/docker-desktop/):
+
+```bash
+docker compose up
+```
+
+This boots the database, backend, and frontend together — and automatically
+generates the app key, runs migrations, and seeds demo stays. When it's ready:
+
+- **Guest site** → http://localhost:3000
+- **Admin dashboard** → http://localhost:3000/admin (login `admin` / `change-me`)
+
+See **[SETUP.md](SETUP.md)** for configuration and **[DEPLOY.md](DEPLOY.md)**
+for putting it on the internet.
+
+### Manual setup (no Docker)
+
+> Requires Node 18+, PHP 8.3+, and Composer.
 
 ### 1. Backend (Laravel API)
 
@@ -245,7 +265,7 @@ cd backend && php artisan test
 - [ ] iCal/Google Calendar export per booking
 - [ ] Multi-language UI (i18n)
 - [ ] Replace Basic Auth with proper admin auth (Sanctum / NextAuth)
-- [ ] One-click deploy templates (Vercel + Railway)
+- [x] Docker one-command setup ([SETUP.md](SETUP.md)) + cloud deploy guide ([DEPLOY.md](DEPLOY.md))
 
 See open [issues](https://github.com/AmiQT/home-anywhere/issues) for what's
 being worked on.
