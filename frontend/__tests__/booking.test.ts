@@ -1,56 +1,43 @@
 /**
- * Minimal test untuk booking logic
+ * Tests for the GA4 tracking helper. These import the REAL track() function
+ * from lib/ga rather than re-implementing it inline, so the no-op guards
+ * (no window / no gtag) are genuinely covered.
  */
+import { track } from '@/lib/ga'
 
-describe('Booking Logic', () => {
-  test('deposit calculation: default 30% if not set', () => {
-    const price = 10000 // RM 100
-    const depositRatio = 0.3
-    const expectedDeposit = Math.floor(price * depositRatio) // 3000
-    expect(expectedDeposit).toBe(3000)
+describe('track (GA4 helper)', () => {
+  const originalWindow = (global as any).window
+
+  afterEach(() => {
+    ;(global as any).window = originalWindow
+    jest.restoreAllMocks()
   })
 
-  test('deposit calculation: use explicit deposit if set', () => {
-    const price = 10000
-    const explicitDeposit = 5000
-    const actualDeposit = explicitDeposit ?? Math.floor(price * 0.3)
-    expect(actualDeposit).toBe(5000)
+  test('does nothing and does not throw when window is undefined (SSR)', () => {
+    delete (global as any).window
+    expect(() => track('view_schedule')).not.toThrow()
   })
 
-  test('slot capacity check', () => {
-    const slotCapacity = 1
-    const currentBookings = 0
-    const canBook = currentBookings < slotCapacity
-    expect(canBook).toBe(true)
+  test('does nothing when gtag is not present on window', () => {
+    ;(global as any).window = {} // no gtag
+    expect(() => track('start_booking', { foo: 'bar' })).not.toThrow()
   })
 
-  test('slot capacity full', () => {
-    const slotCapacity = 1
-    const currentBookings = 1
-    const canBook = currentBookings < slotCapacity
-    expect(canBook).toBe(false)
-  })
-})
+  test('forwards the event and params to gtag when available', () => {
+    const gtag = jest.fn()
+    ;(global as any).window = { gtag }
 
-describe('GA4 Tracking', () => {
-  test('track function does not crash when gtag is undefined', () => {
-    // Simulate browser environment without GA4
-    const track = (event: string, params?: Record<string, any>) => {
-      if (typeof window === 'undefined') return
-      if (!(window as any).gtag) return
-      ;(window as any).gtag('event', event, params || {})
-    }
-    
-    // Should not throw
-    expect(() => track('test_event')).not.toThrow()
-  })
-})
+    track('complete_booking', { value: 42 })
 
-describe('Date Helpers', () => {
-  test('slot start time is in future for demo', () => {
-    const now = new Date()
-    const tomorrow = new Date(now.getTime() + 24 * 60 * 60 * 1000)
-    tomorrow.setHours(10, 0, 0, 0)
-    expect(tomorrow.getTime()).toBeGreaterThan(now.getTime())
+    expect(gtag).toHaveBeenCalledWith('event', 'complete_booking', { value: 42 })
+  })
+
+  test('passes an empty object when params are omitted', () => {
+    const gtag = jest.fn()
+    ;(global as any).window = { gtag }
+
+    track('add_on_selected')
+
+    expect(gtag).toHaveBeenCalledWith('event', 'add_on_selected', {})
   })
 })

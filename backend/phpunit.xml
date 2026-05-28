@@ -32,5 +32,8 @@
         <env name="PULSE_ENABLED" value="false"/>
         <env name="TELESCOPE_ENABLED" value="false"/>
         <env name="NIGHTWATCH_ENABLED" value="false"/>
+        <!-- Admin Basic-auth creds used by AdminAuthTest. -->
+        <env name="ADMIN_USERNAME" value="admin"/>
+        <env name="ADMIN_PASSWORD" value="secret-pass"/>
     </php>
 </phpunit>
