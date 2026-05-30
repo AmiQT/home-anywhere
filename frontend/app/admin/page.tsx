@@ -30,6 +30,8 @@ import { ConfirmDialog } from '@/components/admin/ConfirmDialog'
 import { ImageManager, type ServiceImage } from '@/components/admin/ImageManager'
 import { SiteContentEditor } from '@/components/admin/SiteContentEditor'
 import { PricingSettingsEditor } from '@/components/admin/PricingSettingsEditor'
+import { BrandingEditor } from '@/components/admin/BrandingEditor'
+import { SecurityBanner } from '@/components/admin/SecurityBanner'
 import {
   House,
   CalendarDays,
@@ -47,6 +49,7 @@ import {
   Loader2,
   Layout,
   Receipt,
+  Palette,
 } from 'lucide-react'
 
 type Service = {
@@ -317,6 +320,8 @@ export default function AdminPage() {
         </p>
       </header>
 
+      <SecurityBanner />
+
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         <StatCard icon={House} label="Homestays" value={services.length} />
         <StatCard
@@ -359,6 +364,13 @@ export default function AdminPage() {
           >
             <ClipboardList className="h-4 w-4 mr-2" />
             Bookings
+          </TabsTrigger>
+          <TabsTrigger
+            value="branding"
+            className="px-4 py-2 data-[state=active]:bg-background data-[state=active]:shadow-sm"
+          >
+            <Palette className="h-4 w-4 mr-2" />
+            Branding
           </TabsTrigger>
           <TabsTrigger
             value="content"
@@ -895,6 +907,11 @@ export default function AdminPage() {
               </div>
             </CardContent>
           </Card>
+        </TabsContent>
+
+        {/* BRANDING */}
+        <TabsContent value="branding" className="space-y-6 mt-6">
+          <BrandingEditor />
         </TabsContent>
 
         {/* SITE CONTENT (CMS) */}

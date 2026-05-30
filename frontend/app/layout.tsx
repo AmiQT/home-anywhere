@@ -2,10 +2,14 @@ import './globals.css'
 import React from 'react'
 import Link from 'next/link'
 import Script from 'next/script'
+import type { Metadata } from 'next'
 import { Inter, Plus_Jakarta_Sans } from 'next/font/google'
 import { House } from 'lucide-react'
 import { Toaster } from '@/components/ui/sonner'
 import { SiteFooter } from '@/components/site/SiteFooter'
+import { BrandName } from '@/components/site/BrandName'
+import { getBranding } from '@/lib/site-content-server'
+import type { Branding } from '@/lib/site-content'
 
 const inter = Inter({
   subsets: ['latin'],
@@ -19,13 +23,20 @@ const jakarta = Plus_Jakarta_Sans({
   display: 'swap',
 })
 
-export const metadata = {
-  title: 'Home Anywhere — Find your stay, anywhere',
-  description:
-    'Discover boutique homestays across Malaysia. Real-time availability, secure deposits, instant confirmation.',
+export async function generateMetadata(): Promise<Metadata> {
+  const branding = await getBranding()
+  return {
+    title: `${branding.name} — ${branding.tagline}`,
+    description: branding.tagline,
+  }
 }
 
-export default function RootLayout({ children }: { children: React.ReactNode }) {
+export default async function RootLayout({
+  children,
+}: {
+  children: React.ReactNode
+}) {
+  const branding = await getBranding()
   return (
     <html lang="en" className={`${inter.variable} ${jakarta.variable}`}>
       <body className="min-h-screen flex flex-col">
@@ -45,7 +56,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           </>
         ) : null}
 
-        <SiteHeader />
+        <SiteHeader branding={branding} />
         <main className="flex-1">{children}</main>
         <SiteFooter />
         <Toaster />
@@ -54,16 +65,25 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   )
 }
 
-function SiteHeader() {
+function SiteHeader({ branding }: { branding: Branding }) {
   return (
     <header className="sticky top-0 z-50 w-full border-b border-border bg-background/85 backdrop-blur supports-[backdrop-filter]:bg-background/70">
       <div className="container flex h-16 items-center justify-between">
         <Link href="/" className="flex items-center gap-2 group">
-          <span className="inline-flex h-9 w-9 items-center justify-center rounded-lg bg-primary text-primary-foreground shadow-sm transition-transform group-hover:scale-105">
-            <House className="h-5 w-5" />
+          <span className="inline-flex h-9 w-9 items-center justify-center rounded-lg bg-primary text-primary-foreground shadow-sm transition-transform group-hover:scale-105 overflow-hidden">
+            {branding.logo_path ? (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img
+                src={`/storage/${branding.logo_path}`}
+                alt={branding.name}
+                className="h-full w-full object-cover"
+              />
+            ) : (
+              <House className="h-5 w-5" />
+            )}
           </span>
           <span className="font-display text-lg font-bold tracking-tight">
-            Home<span className="text-primary">Anywhere</span>
+            <BrandName name={branding.name} />
           </span>
         </Link>
 

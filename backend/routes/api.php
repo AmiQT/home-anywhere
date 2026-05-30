@@ -42,6 +42,9 @@ Route::middleware('throttle:300,1')->post(
 Route::middleware(['admin.basic', 'throttle:300,1'])
     ->prefix('admin')
     ->group(function () {
+        // Security health for the dashboard banner (weak/default password check).
+        Route::get('/security-status', [AdminController::class, 'securityStatus']);
+
         Route::get('/services', [AdminController::class, 'getServices']);
         Route::post('/services', [AdminController::class, 'createService']);
         Route::patch('/services', [AdminController::class, 'updateService']);
@@ -62,6 +65,10 @@ Route::middleware(['admin.basic', 'throttle:300,1'])
         // Site content (CMS)
         Route::get('/site-content', [AdminController::class, 'getSiteContent']);
         Route::put('/site-content', [AdminController::class, 'updateSiteContent']);
+
+        // Branding logo upload (path stored on the `branding` site-content row)
+        Route::post('/branding/logo', [AdminController::class, 'uploadBrandingLogo']);
+        Route::delete('/branding/logo', [AdminController::class, 'deleteBrandingLogo']);
 
         // Pricing settings (SST, weekend surcharge, cleaning fee, default deposit %)
         Route::get('/pricing-settings', [AdminController::class, 'getPricingSettings']);

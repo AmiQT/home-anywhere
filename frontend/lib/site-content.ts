@@ -78,7 +78,25 @@ export type Footer = {
   location: string
 }
 
+export type BrandingSocial = {
+  facebook: string
+  instagram: string
+  twitter: string
+  email: string
+}
+
+export type Branding = {
+  /** Business name shown in the header, footer, copyright, and tab title. */
+  name: string
+  /** Short tagline appended to the tab title and used as the SEO description. */
+  tagline: string
+  /** Uploaded logo path (served via /storage/...). null = default house icon. */
+  logo_path: string | null
+  social: BrandingSocial
+}
+
 export type SiteContent = {
+  branding: Branding
   hero: Hero
   trust_stats: TrustStat[]
   headings: Headings
@@ -90,6 +108,17 @@ export type SiteContent = {
 }
 
 export const DEFAULT_SITE_CONTENT: SiteContent = {
+  branding: {
+    name: 'Home Anywhere',
+    tagline: 'Find your stay, anywhere',
+    logo_path: null,
+    social: {
+      facebook: '',
+      instagram: '',
+      twitter: '',
+      email: 'hello@homeanywhere.co',
+    },
+  },
   hero: {
     badge: 'New stays added every week',
     title: 'Find your stay, anywhere you go.',
@@ -196,6 +225,14 @@ export async function fetchSiteContent(): Promise<SiteContent> {
 /** Shallow-merge top-level keys with defaults so missing keys still render. */
 export function mergeWithDefaults(partial: Partial<SiteContent>): SiteContent {
   return {
+    branding: {
+      ...DEFAULT_SITE_CONTENT.branding,
+      ...(partial.branding ?? {}),
+      social: {
+        ...DEFAULT_SITE_CONTENT.branding.social,
+        ...(partial.branding?.social ?? {}),
+      },
+    },
     hero: { ...DEFAULT_SITE_CONTENT.hero, ...(partial.hero ?? {}) },
     trust_stats: partial.trust_stats ?? DEFAULT_SITE_CONTENT.trust_stats,
     headings: { ...DEFAULT_SITE_CONTENT.headings, ...(partial.headings ?? {}) },

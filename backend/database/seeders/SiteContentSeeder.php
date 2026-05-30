@@ -10,6 +10,17 @@ class SiteContentSeeder extends Seeder
     public function run(): void
     {
         $defaults = [
+            'branding' => [
+                'name' => 'Home Anywhere',
+                'tagline' => 'Find your stay, anywhere',
+                'logo_path' => null,
+                'social' => [
+                    'facebook' => '',
+                    'instagram' => '',
+                    'twitter' => '',
+                    'email' => 'hello@homeanywhere.co',
+                ],
+            ],
             'hero' => [
                 'badge' => 'New stays added every week',
                 'title' => 'Find your stay, anywhere you go.',
