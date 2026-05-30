@@ -78,7 +78,8 @@ generates the app key, runs migrations, and seeds demo stays. When it's ready:
 - **Admin dashboard** → http://localhost:3000/admin (login `admin` / `change-me`)
 
 See **[SETUP.md](SETUP.md)** for configuration and **[DEPLOY.md](DEPLOY.md)**
-for putting it on the internet.
+for putting it on the internet. Managing the site day to day?
+**[USER_GUIDE.md](USER_GUIDE.md)** walks through the admin dashboard.
 
 ### Manual setup (no Docker)
 
@@ -269,6 +270,17 @@ cd backend && php artisan test
 
 See open [issues](https://github.com/AmiQT/home-anywhere/issues) for what's
 being worked on.
+
+---
+
+## Documentation
+
+| Guide                            | Who it's for                                          |
+| -------------------------------- | ----------------------------------------------------- |
+| **[SETUP.md](SETUP.md)**         | Operators — install & run the stack (Docker / manual) |
+| **[DEPLOY.md](DEPLOY.md)**       | Operators — put the site online with a domain + HTTPS |
+| **[USER_GUIDE.md](USER_GUIDE.md)** | Business owners — use the admin dashboard (Bahasa Melayu) |
+| **[CONTRIBUTING.md](CONTRIBUTING.md)** | Developers — code conventions & how to submit PRs |
 
 ---
 
