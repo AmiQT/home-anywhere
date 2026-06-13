@@ -10,6 +10,7 @@ use App\Models\Slot;
 use App\Models\Booking;
 use App\Services\GoogleCalendarService;
 use App\Services\NotificationService;
+use App\Support\AdminSecurity;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
@@ -24,6 +25,26 @@ class AdminController extends Controller
     {
         $this->calendarService = $calendarService;
         $this->notificationService = $notificationService;
+    }
+
+    // ==========================================
+    // SECURITY STATUS
+    // ==========================================
+
+    /**
+     * Tells the dashboard whether the current admin password is still a weak
+     * placeholder (e.g. the shipped `change-me`). The UI shows a warning banner
+     * when this returns weak=true so operators don't leave a real business
+     * behind a guessable password. Reaching this endpoint already requires
+     * passing admin auth, so we never expose the password itself.
+     */
+    public function securityStatus()
+    {
+        return response()->json([
+            'password' => [
+                'weak' => AdminSecurity::isWeakPassword(env('ADMIN_PASSWORD')),
+            ],
+        ]);
     }
 
     // ==========================================
@@ -188,6 +209,54 @@ class AdminController extends Controller
         SiteContent::setMap($payload);
 
         return response()->json(SiteContent::asMap());
+    }
+
+    // ==========================================
+    // BRANDING LOGO
+    // ==========================================
+
+    /**
+     * Upload a logo for the site branding. Multipart/form-data with `logo`.
+     * The path is stored on the `branding` site-content row so the public
+     * site renders it in place of the default house icon. Replaces (and
+     * deletes) any previously uploaded logo. Mirrors uploadServiceImage().
+     */
+    public function uploadBrandingLogo(Request $request)
+    {
+        $request->validate([
+            'logo' => 'required|file|image|mimes:jpeg,jpg,png,webp,svg|max:1024', // 1MB
+        ]);
+
+        $branding = SiteContent::where('key', 'branding')->value('value') ?? [];
+
+        // Remove the old logo file if one was set.
+        if (!empty($branding['logo_path'])) {
+            Storage::disk('public')->delete($branding['logo_path']);
+        }
+
+        $path = $request->file('logo')->store('branding', 'public');
+
+        $branding['logo_path'] = $path;
+        SiteContent::setMap(['branding' => $branding]);
+
+        return response()->json(['logo_path' => $path], 201);
+    }
+
+    /**
+     * Remove the uploaded logo, reverting the site to the default house icon.
+     */
+    public function deleteBrandingLogo()
+    {
+        $branding = SiteContent::where('key', 'branding')->value('value') ?? [];
+
+        if (!empty($branding['logo_path'])) {
+            Storage::disk('public')->delete($branding['logo_path']);
+        }
+
+        $branding['logo_path'] = null;
+        SiteContent::setMap(['branding' => $branding]);
+
+        return response()->json(['ok' => true]);
     }
 
     // ==========================================

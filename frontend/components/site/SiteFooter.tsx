@@ -14,14 +14,22 @@ import {
 import {
   DEFAULT_SITE_CONTENT,
   fetchSiteContent,
+  type Branding,
   type Footer as FooterCopy,
 } from "@/lib/site-content"
+import { BrandName } from "@/components/site/BrandName"
 
 export function SiteFooter() {
   const [copy, setCopy] = React.useState<FooterCopy>(DEFAULT_SITE_CONTENT.footer)
+  const [branding, setBranding] = React.useState<Branding>(
+    DEFAULT_SITE_CONTENT.branding,
+  )
 
   React.useEffect(() => {
-    fetchSiteContent().then((data) => setCopy(data.footer))
+    fetchSiteContent().then((data) => {
+      setCopy(data.footer)
+      setBranding(data.branding)
+    })
   }, [])
 
   return (
@@ -30,29 +38,46 @@ export function SiteFooter() {
         <div className="grid gap-10 md:grid-cols-4">
           <div className="md:col-span-2 space-y-3">
             <Link href="/" className="flex items-center gap-2">
-              <span className="inline-flex h-9 w-9 items-center justify-center rounded-lg bg-primary text-primary-foreground">
-                <House className="h-5 w-5" />
+              <span className="inline-flex h-9 w-9 items-center justify-center rounded-lg bg-primary text-primary-foreground overflow-hidden">
+                {branding.logo_path ? (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img
+                    src={`/storage/${branding.logo_path}`}
+                    alt={branding.name}
+                    className="h-full w-full object-cover"
+                  />
+                ) : (
+                  <House className="h-5 w-5" />
+                )}
               </span>
               <span className="font-display text-lg font-bold tracking-tight">
-                Home<span className="text-primary">Anywhere</span>
+                <BrandName name={branding.name} />
               </span>
             </Link>
             <p className="text-sm text-muted-foreground max-w-sm leading-relaxed">
               {copy.description}
             </p>
             <div className="flex items-center gap-2 pt-2">
-              <SocialIcon href="#" label="Facebook">
-                <Facebook className="h-4 w-4" />
-              </SocialIcon>
-              <SocialIcon href="#" label="Instagram">
-                <Instagram className="h-4 w-4" />
-              </SocialIcon>
-              <SocialIcon href="#" label="Twitter">
-                <Twitter className="h-4 w-4" />
-              </SocialIcon>
-              <SocialIcon href={`mailto:${copy.email}`} label="Email">
-                <Mail className="h-4 w-4" />
-              </SocialIcon>
+              {branding.social.facebook && (
+                <SocialIcon href={branding.social.facebook} label="Facebook">
+                  <Facebook className="h-4 w-4" />
+                </SocialIcon>
+              )}
+              {branding.social.instagram && (
+                <SocialIcon href={branding.social.instagram} label="Instagram">
+                  <Instagram className="h-4 w-4" />
+                </SocialIcon>
+              )}
+              {branding.social.twitter && (
+                <SocialIcon href={branding.social.twitter} label="Twitter">
+                  <Twitter className="h-4 w-4" />
+                </SocialIcon>
+              )}
+              {branding.social.email && (
+                <SocialIcon href={`mailto:${branding.social.email}`} label="Email">
+                  <Mail className="h-4 w-4" />
+                </SocialIcon>
+              )}
             </div>
           </div>
 
@@ -121,7 +146,7 @@ export function SiteFooter() {
         </div>
 
         <div className="mt-12 pt-6 border-t border-border flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-muted-foreground">
-          <p>© {new Date().getFullYear()} Home Anywhere. All rights reserved.</p>
+          <p>© {new Date().getFullYear()} {branding.name}. All rights reserved.</p>
           <div className="flex items-center gap-5">
             <Link href="#" className="hover:text-foreground transition-colors">
               Privacy
